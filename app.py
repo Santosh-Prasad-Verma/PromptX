@@ -237,27 +237,4 @@ def ab_test():
 app = app
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    
-    print(f"""
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║       AI Prompt Enhancer - Gemini Powered 🌟              ║
-║                   Version 2.0.0                           ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-
-Server: http://localhost:{port}
-Model: Google Gemini Pro
-
-Endpoints:
-  POST /api/enhance           - Enhance prompt
-  POST /api/detect-intent     - Auto-detect intent
-  POST /api/quality-heatmap   - Quality analysis
-  POST /api/ab-test           - A/B variations
-  GET  /health                - Health check
-
-Press CTRL+C to stop
-""")
-    
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(debug=True)
