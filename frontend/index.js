@@ -1,5 +1,8 @@
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-const API_BASE = isLocal ? 'http://127.0.0.1:5000/api' : '/api';
+const API_BASE = (function() {
+  const loc = window.location;
+  if (loc.protocol === 'file:') return 'http://127.0.0.1:8000/api';
+  return `${loc.protocol}//${loc.hostname}:${loc.port || (loc.protocol === 'https:' ? '443' : '80')}/api`;
+})();
 let currentMode = 'enhance';
 let selectedModel = 'auto';
 
