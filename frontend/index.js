@@ -12,13 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Failed to initialize icons:', e);
   }
   
-  setupNavbar();
-  setupModeTabs();
-  setupQuickActions();
+  // Shared setup
   setupModelSelector();
   setupChatInput();
-  setupScrollAnimations();
-  setupMobileNav();
+  setupQuickActions();
+  
+  // Landing page specific
+  if (document.getElementById('navbar')) {
+    setupNavbar();
+    setupScrollAnimations();
+    setupMobileNav();
+  }
+  
+  // Chat page or landing page mode tabs
+  setupModeTabs();
   
   const apiInput = document.getElementById('api-key-input');
   if (apiInput) {
@@ -30,19 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== NAVBAR =====
 function setupNavbar() {
   const navbar = document.getElementById('navbar');
-  let lastScroll = 0;
+  if (!navbar) return;
   
   window.addEventListener('scroll', () => {
-    const currentScroll = window.scrollY;
-    if (currentScroll > 50) {
+    if (window.scrollY > 50) {
       navbar.classList.add('scrolled');
     } else {
       navbar.classList.remove('scrolled');
     }
-    lastScroll = currentScroll;
   });
   
-  // Smooth scroll for nav links
+  // Smooth scroll for anchor links
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', (e) => {
       const targetId = link.getAttribute('href');
@@ -79,7 +84,7 @@ function setupMobileNav() {
 
 // ===== MODE TABS =====
 function setupModeTabs() {
-  const tabs = document.querySelectorAll('.app-mode-tab');
+  const tabs = document.querySelectorAll('.app-mode-tab, .chat-mode-tab');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
@@ -139,7 +144,7 @@ function setupModelSelector() {
       itemsContainer.classList.add('select-hide');
       selected.classList.remove('open');
       
-      showToast('Model Changed', `Switched to ${text}`, 'success');
+      showToast('[SYS] Model Changed', `Switched to ${text}`, 'success');
     });
   });
 
@@ -153,11 +158,10 @@ function updateModeIndicator() {
   const modeNames = {
     enhance: 'Enhance Mode',
     analyze: 'Analyze Mode',
-    compare: 'Compare Mode',
-    history: 'History Mode'
+    compare: 'Compare Mode'
   };
   const indicator = document.getElementById('mode-indicator');
-  if (indicator) indicator.textContent = modeNames[currentMode];
+  if (indicator) indicator.textContent = modeNames[currentMode] || 'Enhance Mode';
 }
 
 // ===== CHAT INPUT =====
@@ -239,7 +243,7 @@ function addAssistantMessage(content) {
 }
 
 function addLoadingMessage() {
-  const msg = addAssistantMessage('<div style="padding: 0.75rem; display: flex; align-items: center; gap: 0.75rem;"><div class="typing-cursor" style="width: 3px; height: 16px;"></div> <span style="color: var(--text-secondary); font-size: 0.9rem;">Thinking...</span></div>');
+  const msg = addAssistantMessage('<div style="padding: 0.75rem; display: flex; align-items: center; gap: 0.75rem;"><div class="typing-cursor" style="width: 3px; height: 16px;"></div> <span style="color: var(--text-secondary); font-size: 0.9rem; font-family: var(--font-mono);">[SYS] Processing...</span></div>');
   return msg;
 }
 
@@ -249,9 +253,7 @@ async function handleEnhance(prompt) {
   
   try {
     const requestBody = { prompt };
-    if (selectedModel !== 'auto') {
-      requestBody.model = selectedModel;
-    }
+    if (selectedModel !== 'auto') requestBody.model = selectedModel;
     
     const apiKey = document.getElementById('api-key-input')?.value || '';
     const headers = { 'Content-Type': 'application/json' };
@@ -269,16 +271,16 @@ async function handleEnhance(prompt) {
     if (result.success) {
       const content = `
         <div class="analysis-card">
-          <h3 style="margin-bottom: 1rem; color: var(--primary);">✨ Enhanced Prompt</h3>
+          <h3 style="margin-bottom: 1rem; color: var(--primary); font-family: var(--font-mono); font-size: 0.95rem;">[&gt;_] Enhanced Prompt</h3>
           <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: 12px; margin-bottom: 1rem; line-height: 1.8; border: 1px solid var(--border);">
             ${renderMarkdown(result.enhanced)}
           </div>
           <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
-            <span style="font-size: 0.8rem; color: var(--text-secondary); background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 100px; border: 1px solid var(--border);">
-              🤖 ${result.model.toUpperCase()}
+            <span style="font-size: 0.78rem; color: var(--text-secondary); background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 100px; border: 1px solid var(--border); font-family: var(--font-mono);">
+              MODEL: ${result.model.toUpperCase()}
             </span>
-            <span style="font-size: 0.8rem; color: var(--primary); background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 100px; border: 1px solid var(--border);">
-              📈 +${result.improvement} quality points
+            <span style="font-size: 0.78rem; color: var(--primary); background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 100px; border: 1px solid var(--border); font-family: var(--font-mono);">
+              +${result.improvement} quality pts
             </span>
           </div>
           <div class="message-actions">
@@ -293,11 +295,11 @@ async function handleEnhance(prompt) {
       `;
       addAssistantMessage(content);
     } else {
-      addAssistantMessage(`<div style="color: var(--error); padding: 1rem;">❌ Error: ${escapeHtml(result.error || 'Failed to enhance prompt')}</div>`);
+      addAssistantMessage(`<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] ${escapeHtml(result.error || 'Failed to enhance prompt')}</div>`);
     }
   } catch (error) {
     loadingMsg.remove();
-    addAssistantMessage('<div style="color: var(--error); padding: 1rem;">❌ Failed to enhance prompt. Check your connection.</div>');
+    addAssistantMessage('<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] Connection failed. Check your server.</div>');
   }
 }
 
@@ -307,9 +309,7 @@ async function handleAnalyze(prompt) {
   
   try {
     const requestBody = { prompt };
-    if (selectedModel !== 'auto') {
-      requestBody.model = selectedModel;
-    }
+    if (selectedModel !== 'auto') requestBody.model = selectedModel;
     
     const apiKey = document.getElementById('api-key-input')?.value || '';
     const headers = { 'Content-Type': 'application/json' };
@@ -330,54 +330,54 @@ async function handleAnalyze(prompt) {
       
       const content = `
         <div class="analysis-card">
-          <h3 style="margin-bottom: 1.5rem; color: var(--primary);">📊 Quality Analysis</h3>
+          <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-family: var(--font-mono); font-size: 0.95rem;">[///] Quality Analysis</h3>
           
           <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border);">
             <div style="text-align: center;">
-              <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); text-shadow: 0 0 20px rgba(0,255,65,0.3);">${analysis.overall}</div>
-              <div style="color: var(--text-secondary); font-size: 0.85rem;">Overall Score</div>
+              <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); font-family: var(--font-display); text-shadow: 0 0 20px rgba(0,255,65,0.3);">${analysis.overall}</div>
+              <div style="color: var(--text-secondary); font-size: 0.8rem; font-family: var(--font-mono);">SCORE</div>
             </div>
             <div style="text-align: center;">
-              <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); text-shadow: 0 0 20px rgba(0,255,65,0.3);">${analysis.grade}</div>
-              <div style="color: var(--text-secondary); font-size: 0.85rem;">Grade</div>
+              <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); font-family: var(--font-display); text-shadow: 0 0 20px rgba(0,255,65,0.3);">${analysis.grade}</div>
+              <div style="color: var(--text-secondary); font-size: 0.8rem; font-family: var(--font-mono);">GRADE</div>
             </div>
           </div>
           
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
             ${Object.entries(metrics).map(([key, value]) => `
               <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border);">
-                <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: capitalize;">
+                <div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase; font-family: var(--font-mono);">
                   ${key.replace('_', ' ')}
                 </div>
                 <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-bottom: 0.4rem;">
                   <div style="height: 100%; width: ${(value.score / 10) * 100}%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 3px; box-shadow: 0 0 8px rgba(0,255,65,0.3);"></div>
                 </div>
-                <div style="font-size: 1rem; font-weight: 700; color: var(--primary);">${value.score}/10</div>
+                <div style="font-size: 1rem; font-weight: 700; color: var(--primary); font-family: var(--font-mono);">${value.score}/10</div>
               </div>
             `).join('')}
           </div>
           
           ${analysis.suggestions.length > 0 ? `
             <div style="background: var(--primary-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.15rem;">
-              <h4 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.95rem;">💡 Suggestions</h4>
+              <h4 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.85rem; font-family: var(--font-mono);">[TIP] Suggestions</h4>
               ${analysis.suggestions.map(sug => `
                 <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
-                  <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; font-size: 0.85rem;">${sug.category}</div>
-                  <div style="color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 0.3rem;">${sug.issue}</div>
-                  <div style="color: var(--success); font-size: 0.82rem;">✅ ${sug.fix}</div>
+                  <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; font-size: 0.82rem;">${sug.category}</div>
+                  <div style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.3rem;">${sug.issue}</div>
+                  <div style="color: var(--success); font-size: 0.8rem; font-family: var(--font-mono);">[FIX] ${sug.fix}</div>
                 </div>
               `).join('')}
             </div>
-          ` : '<div style="color: var(--success); padding: 1rem; text-align: center;">✅ Your prompt looks great!</div>'}
+          ` : '<div style="color: var(--success); padding: 1rem; text-align: center; font-family: var(--font-mono);">[OK] Your prompt looks great!</div>'}
         </div>
       `;
       addAssistantMessage(content);
     } else {
-      addAssistantMessage(`<div style="color: var(--error); padding: 1rem;">❌ Error: ${escapeHtml(result.error || 'Failed to analyze prompt')}</div>`);
+      addAssistantMessage(`<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] ${escapeHtml(result.error || 'Failed to analyze prompt')}</div>`);
     }
   } catch (error) {
     loadingMsg.remove();
-    addAssistantMessage('<div style="color: var(--error); padding: 1rem;">❌ Failed to analyze prompt</div>');
+    addAssistantMessage('<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] Analysis failed</div>');
   }
 }
 
@@ -387,9 +387,7 @@ async function handleCompare(prompt) {
   
   try {
     const requestBody = { prompt, include_comparison: true };
-    if (selectedModel !== 'auto') {
-      requestBody.model = selectedModel;
-    }
+    if (selectedModel !== 'auto') requestBody.model = selectedModel;
     
     const apiKey = document.getElementById('api-key-input')?.value || '';
     const headers = { 'Content-Type': 'application/json' };
@@ -407,12 +405,14 @@ async function handleCompare(prompt) {
     if (result.success) {
       const comparison = result.data;
       
+      const typeIcons = { concise: '[MIN]', detailed: '[MAX]', structured: '[SYS]' };
+      
       const content = `
         <div class="analysis-card">
-          <h3 style="margin-bottom: 1.5rem; color: var(--primary);">🧪 A/B Test Variations</h3>
+          <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-family: var(--font-mono); font-size: 0.95rem;">[&lt;&gt;] A/B Test Variations</h3>
           
-          <div style="background: var(--primary-light); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-            <strong style="color: var(--primary);">🏆 Recommendation:</strong>
+          <div style="background: var(--primary-light); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; font-family: var(--font-mono); font-size: 0.85rem;">
+            <strong style="color: var(--primary);">[BEST]</strong>
             <span style="color: var(--text-primary);"> ${comparison.recommendation.best_variation.toUpperCase()} — ${comparison.recommendation.reason}</span>
           </div>
           
@@ -420,15 +420,15 @@ async function handleCompare(prompt) {
             ${Object.entries(comparison.variations).map(([type, variation]) => `
               <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.15rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                  <h4 style="text-transform: capitalize; font-size: 0.95rem;">${type === 'concise' ? '📝' : type === 'detailed' ? '📚' : '🏗️'} ${type}</h4>
-                  <span style="font-size: 0.78rem; color: var(--text-secondary);">${variation.model || ''}</span>
+                  <h4 style="text-transform: uppercase; font-size: 0.9rem; font-family: var(--font-mono); color: var(--primary);">${typeIcons[type] || '[VAR]'} ${type}</h4>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">${variation.model || ''}</span>
                 </div>
                 <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem; line-height: 1.6; font-size: 0.88rem; border: 1px solid var(--border);">
                   ${renderMarkdown(variation.text)}
                 </div>
-                <div style="display: flex; gap: 1.25rem; font-size: 0.8rem; color: var(--text-secondary);">
-                  <span>Quality: <strong style="color: var(--primary);">${variation.quality.overall}/10</strong></span>
-                  <span>Length: <strong style="color: var(--text-primary);">${variation.length} chars</strong></span>
+                <div style="display: flex; gap: 1.25rem; font-size: 0.78rem; color: var(--text-secondary); font-family: var(--font-mono);">
+                  <span>QUALITY: <strong style="color: var(--primary);">${variation.quality.overall}/10</strong></span>
+                  <span>LENGTH: <strong style="color: var(--text-primary);">${variation.length}</strong></span>
                 </div>
               </div>
             `).join('')}
@@ -437,11 +437,11 @@ async function handleCompare(prompt) {
       `;
       addAssistantMessage(content);
     } else {
-      addAssistantMessage(`<div style="color: var(--error); padding: 1rem;">❌ Error: ${escapeHtml(result.error || 'Failed to generate variations')}</div>`);
+      addAssistantMessage(`<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] ${escapeHtml(result.error || 'Failed to generate variations')}</div>`);
     }
   } catch (error) {
     loadingMsg.remove();
-    addAssistantMessage('<div style="color: var(--error); padding: 1rem;">❌ Failed to generate variations</div>');
+    addAssistantMessage('<div style="color: var(--error); padding: 1rem; font-family: var(--font-mono);">[ERR] Compare failed</div>');
   }
 }
 
@@ -450,8 +450,7 @@ function setupQuickActions() {
   document.querySelectorAll('.quick-action').forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.getAttribute('data-action');
-      // Update mode tabs
-      const tabs = document.querySelectorAll('.app-mode-tab');
+      const tabs = document.querySelectorAll('.app-mode-tab, .chat-mode-tab');
       tabs.forEach(t => {
         t.classList.remove('active');
         if (t.getAttribute('data-mode') === action) {
@@ -460,7 +459,8 @@ function setupQuickActions() {
       });
       currentMode = action;
       updateModeIndicator();
-      document.getElementById('chat-input').focus();
+      const input = document.getElementById('chat-input');
+      if (input) input.focus();
     });
   });
 }
@@ -475,11 +475,8 @@ function escapeHtml(text) {
 function copyText(text) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(() => {
-      showToast('Copied!', 'Text copied to clipboard', 'success');
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-      fallbackCopyTextToClipboard(text);
-    });
+      showToast('[OK] Copied', 'Text copied to clipboard', 'success');
+    }).catch(() => fallbackCopyTextToClipboard(text));
   } else {
     fallbackCopyTextToClipboard(text);
   }
@@ -497,29 +494,21 @@ result = app.enhance('Write a blog post about AI')
 # Analyze prompt quality:
 score = app.analyze(result.enhanced)
 print(score.overall)  # → 9.2/10`;
-  
   copyText(code);
 }
 
 function fallbackCopyTextToClipboard(text) {
   const textArea = document.createElement("textarea");
   textArea.value = text;
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
+  textArea.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
   try {
-    const successful = document.execCommand('copy');
-    if (successful) {
-      showToast('Copied!', 'Text copied to clipboard', 'success');
-    } else {
-      showToast('Error', 'Failed to copy text', 'error');
-    }
+    document.execCommand('copy');
+    showToast('[OK] Copied', 'Text copied to clipboard', 'success');
   } catch (err) {
-    console.error('Fallback: Oops, unable to copy', err);
-    showToast('Error', 'Failed to copy text', 'error');
+    showToast('[ERR]', 'Failed to copy text', 'error');
   }
   document.body.removeChild(textArea);
 }
@@ -527,32 +516,23 @@ function fallbackCopyTextToClipboard(text) {
 function saveToHistory(original, enhanced) {
   const history = getSafeHistory();
   if (!history.find(h => h.original === original && h.enhanced === enhanced)) {
-    history.unshift({
-      id: Date.now().toString(),
-      original,
-      enhanced,
-      timestamp: Date.now()
-    });
+    history.unshift({ id: Date.now().toString(), original, enhanced, timestamp: Date.now() });
     localStorage.setItem('promptHistory', JSON.stringify(history));
   }
-  showToast('Saved!', 'Prompt saved to history', 'success');
+  showToast('[OK] Saved', 'Prompt saved to history', 'success');
 }
 
 function autoSaveToHistory(original) {
   const history = getSafeHistory();
   if (history.length > 0 && history[0].original === original) return;
-  history.unshift({
-    id: Date.now().toString(),
-    original,
-    enhanced: '',
-    timestamp: Date.now()
-  });
+  history.unshift({ id: Date.now().toString(), original, enhanced: '', timestamp: Date.now() });
   if (history.length > 50) history.length = 50;
   localStorage.setItem('promptHistory', JSON.stringify(history));
 }
 
 function showToast(title, message, type = 'success') {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `
@@ -582,7 +562,7 @@ function renderMarkdown(text) {
 
 function exportHistory() {
   const history = getSafeHistory();
-  if (history.length === 0) return showToast('Error', 'No history to export', 'error');
+  if (history.length === 0) return showToast('[ERR]', 'No history to export', 'error');
   const blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -590,5 +570,5 @@ function exportHistory() {
   a.download = `promptx_history_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Exported!', 'History downloaded successfully', 'success');
+  showToast('[OK] Exported', 'History downloaded', 'success');
 }
