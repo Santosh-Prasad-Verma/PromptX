@@ -8,3 +8,4 @@ gunicorn
 social-auth-app-django
 razorpay
 resend
+whitenoise

@@ -73,11 +73,12 @@ LOGIN_URL = '/'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'api.middleware.APIKeyMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'promptx_project.urls'
@@ -124,6 +125,17 @@ DATABASES = {
     }
 }
 
+# Cache — required by django-ratelimit
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'promptx-cache',
+    }
+}
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Static files — frontend is served manually via urls.py
 # No Django staticfiles needed
 
@@ -148,5 +160,9 @@ LOGGING = {
     },
 }
 
+# Static files
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+
 # Server port
-PORT = int(os.getenv('PORT', 5000))
+PORT = int(os.getenv('PORT', 8000))

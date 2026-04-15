@@ -178,7 +178,7 @@ def enhance():
         # Use multi-model fallback (optionally prefer a specific model)
         preferred_model = data.get('model')  # from frontend model selector
         full_prompt = f"{MASTER_PROMPT}\n\nUser prompt to enhance:\n{prompt}"
-        result = generate_with_fallback(full_prompt, max_tokens=2000, preferred_model=preferred_model if preferred_model != 'auto' else None)
+        result = generate_with_fallback(full_prompt, max_tokens=2000, preferred_model=preferred_model if preferred_model in ('gemini', 'groq') else None)
         enhanced = result['text']
         model_used = result['model']
         
