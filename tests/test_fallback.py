@@ -1,13 +1,10 @@
 import os
-<<<<<<< Updated upstream:test_fallback.py
-import resend
-=======
 import sys
+import resend
 
 # Update path to import from the backend directory
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
 
->>>>>>> Stashed changes:tests/test_fallback.py
 from dotenv import load_dotenv
 
 dotenv_path = r"c:\Users\bhalo\PromptX\backend\.env"
