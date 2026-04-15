@@ -5,6 +5,21 @@ Extracted from the original Flask app.py.
 """
 
 import re
+import os
+import resend
+import random
+import string
+from django.template.loader import render_to_string
+
+# Environment variables are loaded at module level, but we check again in functions
+# to ensure changes in .env are picked up if autoreloader is active.
+# Email configuration
+FROM_EMAIL = "PromptX <auth@janhelps.in>" 
+
+def get_resend_key():
+    return os.getenv("RESEND_API_KEY")
+
+resend.api_key = get_resend_key()
 
 
 # ============================================================================
@@ -109,3 +124,62 @@ def score_prompt(prompt):
         'percentage': percentage,
         'quality': 'Excellent' if percentage >= 90 else 'Good' if percentage >= 75 else 'Fair' if percentage >= 60 else 'Poor'
     }
+
+
+# ============================================================================
+# EMAIL NOTIFICATIONS (RESEND)
+# ============================================================================
+
+def send_welcome_email(user_email, user_name):
+    """Sends a cyberpunk-themed welcome email via Resend"""
+    resend.api_key = get_resend_key()
+    if not resend.api_key or resend.api_key == "re_your_resend_api_key_here":
+        print(f"Warning: RESEND_API_KEY not configured. Email to {user_email} skipped.")
+        return False
+    
+    html_content = render_to_string('emails/welcome.html', {
+        'user_name': user_name,
+        'user_email': user_email
+    })
+    
+    try:
+        resend.Emails.send({
+            "from": FROM_EMAIL,
+            "to": user_email,
+            "subject": "PROMPTX // Identity Confirmed",
+            "html": html_content
+        })
+        print(f"Welcome email successfully dispatched to {user_email}")
+        return True
+    except Exception as e:
+        print(f"FAILED dispatching email to {user_email}: {str(e)}")
+        return False
+
+
+def generate_otp():
+    """Generate 6-digit OTP"""
+    return ''.join(random.choices(string.digits, k=6))
+
+
+def send_otp_email(email, otp):
+    """Send OTP verification email with cyberpunk theme"""
+    resend.api_key = get_resend_key()
+    if not resend.api_key or resend.api_key == "re_your_resend_api_key_here":
+        print(f"Warning: RESEND_API_KEY not configured. OTP email to {email} skipped. OTP is: {otp}")
+        return False, "API Key Missing"
+
+    html_content = render_to_string('emails/otp.html', {
+        'otp': otp,
+        'user_email': email
+    })
+    
+    try:
+        resend.Emails.send({
+            "from": FROM_EMAIL,
+            "to": email,
+            "subject": f"PROMPTX // Verification Code: {otp}",
+            "html": html_content
+        })
+        return True, "Success"
+    except Exception as e:
+        return False, str(e)

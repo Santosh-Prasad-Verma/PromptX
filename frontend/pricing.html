@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - PromptX</title>
+  <link rel="icon" type="image/svg+xml" href="Public/star.svg">
+  <link rel="stylesheet" href="styles/page.css">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <img src="Public/bot-img.png" alt="PromptX">
+        <span>PromptX</span>
+      </a>
+      <div class="nav-links">
+        <a href="build.html">Build</a>
+        <a href="integrations.html">Integrations</a>
+        <a href="pricing.html" class="active">Pricing</a>
+        <a href="docs.html">Docs</a>
+      </div>
+    </div>
+    <div class="nav-right">
+      <a href="https://github.com/Santosh-Prasad-Verma/PromptX" target="_blank" class="nav-link">GitHub</a>
+      <a href="chat.html" class="btn-primary">Launch Terminal</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="hero-content">
+      <h1>Simple, transparent <span class="text-gradient">pricing</span></h1>
+      <p>Start free, scale as you grow. No hidden fees, cancel anytime.</p>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="page-section">
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="pricing-card">
+        <h3>Free</h3>
+        <div class="price">$0<span>/month</span></div>
+        <p class="description">Perfect for trying out PromptX</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            100 prompts/day
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Basic quality analysis
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Auto model selection
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Community support
+          </li>
+        </ul>
+        <a href="chat.html" class="btn-secondary">Get Started</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <h3>Pro</h3>
+        <div class="price">$29<span>/month</span></div>
+        <p class="description">For developers and small teams</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            10,000 prompts/month
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Advanced quality analysis
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            All AI models
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            A/B testing
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            API access
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Email support
+          </li>
+        </ul>
+        <button class="btn-primary" onclick="initiatePayment('pro')">Start Free Trial</button>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <div class="price">Custom</div>
+        <p class="description">For large organizations</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Unlimited prompts
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Custom models
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            SSO & SAML
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Dedicated support
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            SLA guarantee
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            On-premise option
+          </li>
+        </ul>
+        <a href="enterprise.html" class="btn-secondary">Contact Sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="page-section">
+    <div class="section-header">
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="api-card">
+        <h3 style="margin-bottom: 12px;">Can I cancel anytime?</h3>
+        <p style="color: var(--text-secondary);">Yes! You can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
+      </div>
+      
+      <div class="api-card">
+        <h3 style="margin-bottom: 12px;">What counts as a prompt?</h3>
+        <p style="color: var(--text-secondary);">Each API call to enhance, analyze, or generate variations counts as one prompt. Batch requests count individually.</p>
+      </div>
+      
+      <div class="api-card">
+        <h3 style="margin-bottom: 12px;">Do unused prompts roll over?</h3>
+        <p style="color: var(--text-secondary);">No, unused prompts don't roll over to the next month. We recommend choosing a plan that matches your typical usage.</p>
+      </div>
+      
+      <div class="api-card">
+        <h3 style="margin-bottom: 12px;">Can I upgrade or downgrade?</h3>
+        <p style="color: var(--text-secondary);">Absolutely! You can change your plan at any time. Changes take effect immediately, and we'll prorate the difference.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="page-cta">
+    <h2>Ready to get started?</h2>
+    <p>Start enhancing your prompts today. No credit card required for free tier.</p>
+    <a href="chat.html" class="btn-primary">Launch Terminal</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="Public/bot-img.png" alt="PromptX">
+        <span>PromptX</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="build.html">Build</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="docs.html">Docs</a>
+        <a href="https://github.com/Santosh-Prasad-Verma/PromptX" target="_blank">GitHub</a>
+      </div>
+      <p>&copy; 2026 PromptX. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Razorpay Payment
+    const RAZORPAY_KEY_ID = 'YOUR_RAZORPAY_KEY_ID'; // Replace with your key
+    
+    const plans = {
+      pro: {
+        name: 'Pro Plan',
+        amount: 2900, // Rs 29 in paise
+        description: '10,000 prompts/month'
+      },
+      enterprise: {
+        name: 'Enterprise Plan',
+        amount: 0,
+        description: 'Custom pricing'
+      }
+    };
+    
+    async function initiatePayment(planKey) {
+      const plan = plans[planKey];
+      
+      if (planKey === 'enterprise') {
+        window.location.href = 'enterprise.html';
+        return;
+      }
+      
+      // For demo, redirect to build page (in production, integrate with backend)
+      if (!RAZORPAY_KEY_ID || RAZORPAY_KEY_ID === 'YOUR_RAZORPAY_KEY_ID') {
+        alert('Payment integration not configured. Redirecting to build page...');
+        window.location.href = 'build.html';
+        return;
+      }
+      
+      // Create order via backend API
+      try {
+        const response = await fetch('/api/create-order/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: planKey })
+        });
+        const order = await response.json();
+        
+        const options = {
+          key: RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: 'INR',
+          name: 'PromptX',
+          description: plan.description,
+          order_id: order.id,
+          handler: function(response) {
+            // Payment successful - redirect to build
+            window.location.href = 'build.html?payment=success';
+          },
+          prefill: {
+            name: 'User',
+            email: 'user@example.com'
+          },
+          theme: {
+            color: '#22c55e'
+          }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        console.error('Payment error:', error);
+        window.location.href = 'build.html';
+      }
+    }
+  </script>
+</body>
+</html>

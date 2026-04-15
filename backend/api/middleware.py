@@ -21,6 +21,18 @@ class APIKeyMiddleware:
         self.api_key = os.getenv('CLIENT_API_KEY')
     
     def __call__(self, request):
+        # Skip API key check for public/auth endpoints
+        exempt_paths = [
+            '/api/login',
+            '/api/register',
+            '/api/verify-otp',
+            '/api/resend-otp',
+            '/api/quick-login',
+            '/api/health',
+        ]
+        if any(request.path.startswith(path) for path in exempt_paths) or request.path.startswith('/auth/'):
+            return self.get_response(request)
+        
         # Only check API key for /api/ endpoints
         if request.path.startswith('/api/') and self.api_key:
             client_key = request.headers.get('X-Api-Key', '')
