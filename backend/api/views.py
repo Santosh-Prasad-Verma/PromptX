@@ -283,6 +283,9 @@ def enhance_view(request):
 
         preferred_model = data.get('model')
         model_arg = preferred_model if preferred_model in ('gemini', 'groq') else None
+        
+        # User-provided API Key from headers
+        api_key = request.headers.get('X-API-Key')
 
         # ── 1. Greeting → welcome response ───────────────────────────────────
         if _is_greeting(prompt):
@@ -291,7 +294,7 @@ def enhance_view(request):
                 f"The user just said: \"{prompt}\"\n\n"
                 f"Respond with a warm, helpful welcome message."
             )
-            result = generate_with_fallback(welcome_prompt, max_tokens=600, preferred_model=model_arg)
+            result = generate_with_fallback(welcome_prompt, max_tokens=600, preferred_model=model_arg, api_key=api_key)
             return JsonResponse({
                 'success': True,
                 'type': 'welcome',
@@ -330,7 +333,7 @@ def enhance_view(request):
                     crawl['pages_scraped'], crawl['total_chars'],
                     pages_list, crawl['combined_text'][:28000], search_text
                 )
-                result = generate_with_fallback(url_analysis_prompt, max_tokens=8000, preferred_model=model_arg)
+                result = generate_with_fallback(url_analysis_prompt, max_tokens=8000, preferred_model=model_arg, api_key=api_key)
                 classification = classify_prompt(prompt)
                 return JsonResponse({
                     'success': True,
@@ -376,7 +379,7 @@ def enhance_view(request):
                     f"## 🚀 HOW TO BUILD THIS\n"
                     f"Provide a step-by-step development phase guide to building a clone of this."
                 )
-                result = generate_with_fallback(fallback_prompt, max_tokens=3000, preferred_model=model_arg)
+                result = generate_with_fallback(fallback_prompt, max_tokens=3000, preferred_model=model_arg, api_key=api_key)
                 return JsonResponse({
                     'success': True,
                     'type': 'url_analysis',
@@ -411,7 +414,7 @@ Request: "{prompt}"
 
 Respond in 3-5 sentences, very concisely. This is an internal analysis step."""
 
-            analysis_result = generate_with_fallback(analysis_prompt, max_tokens=400, preferred_model=model_arg)
+            analysis_result = generate_with_fallback(analysis_prompt, max_tokens=400, preferred_model=model_arg, api_key=api_key)
             analysis_text = analysis_result['text']
 
             # Pass 2: Generate the full deep-dive answer using the analysis
@@ -425,7 +428,7 @@ Respond in 3-5 sentences, very concisely. This is an internal analysis step."""
                 f"Be extremely detailed. Do not skip any section. Minimum 2000 words."
             )
 
-            result = generate_with_fallback(deep_prompt, max_tokens=8000, preferred_model=model_arg)
+            result = generate_with_fallback(deep_prompt, max_tokens=8000, preferred_model=model_arg, api_key=api_key)
             enhanced = result['text']
             model_used = result['model']
 
@@ -476,7 +479,7 @@ Respond in 3-5 sentences, very concisely. This is an internal analysis step."""
             f"User prompt to enhance:\n{prompt}"
         )
 
-        result = generate_with_fallback(full_prompt, max_tokens=3000, preferred_model=model_arg)
+        result = generate_with_fallback(full_prompt, max_tokens=2000, preferred_model=model_arg, api_key=api_key)
         enhanced = result['text']
         model_used = result['model']
         enhanced_score = score_prompt(enhanced)
@@ -597,7 +600,8 @@ def ab_test_view(request):
         if not prompt:
             return JsonResponse({'error': 'Prompt is empty or invalid'}, status=400)
         
-        variations = generate_ab_variations(prompt)
+        api_key = request.headers.get('X-API-Key')
+        variations = generate_ab_variations(prompt, api_key=api_key)
         
         # Optionally include comparison
         if data.get('include_comparison', True):
@@ -647,6 +651,7 @@ def analyze_url_view(request):
         question = sanitize_input(data.get('question', '').strip()) or \
                    'Give a complete deep analysis of this website.'
         model_arg = data.get('model') if data.get('model') in ('gemini', 'groq') else None
+        api_key = request.headers.get('X-API-Key')
 
         from urllib.parse import urlparse
         domain = urlparse(url).netloc.replace('www.', '')
@@ -704,7 +709,7 @@ def analyze_url_view(request):
             search_context if search_context else '(No additional search results available)'
         )
 
-        result = generate_with_fallback(analysis_prompt, max_tokens=8000, preferred_model=model_arg)
+        result = generate_with_fallback(analysis_prompt, max_tokens=8000, preferred_model=model_arg, api_key=api_key)
 
         logger.info(
             f"Deep URL analysis complete: {url} | "
@@ -752,6 +757,7 @@ def web_search_view(request):
             return JsonResponse({'error': 'Search query is required'}, status=400)
 
         model_arg = data.get('model') if data.get('model') in ('gemini', 'groq') else None
+        api_key = request.headers.get('X-API-Key')
 
         logger.info(f"Web search: {query}")
         results = web_search(query, max_results=6)
@@ -791,7 +797,7 @@ Any important context, caveats, or related information worth knowing.
 
 Be factual, specific, and cite which results support each point."""
 
-        result = generate_with_fallback(synthesis_prompt, max_tokens=2000, preferred_model=model_arg)
+        result = generate_with_fallback(synthesis_prompt, max_tokens=2000, preferred_model=model_arg, api_key=api_key)
 
         return JsonResponse({
             'success': True,

@@ -46,7 +46,7 @@ class AIModelFallback:
             {'name': 'groq',   'priority': 2},
         ]
     
-    def generate(self, prompt, max_tokens=2000, preferred_model=None):
+    def generate(self, prompt, max_tokens=2000, preferred_model=None, api_key=None):
         """Try models in order until one succeeds."""
         errors = []
         
@@ -58,7 +58,7 @@ class AIModelFallback:
         
         for model in model_order:
             try:
-                result = self._call_model(model['name'], prompt, max_tokens)
+                result = self._call_model(model['name'], prompt, max_tokens, api_key=api_key)
                 if result:
                     return {'text': result, 'model': model['name'], 'success': True}
             except Exception as e:
@@ -67,30 +67,30 @@ class AIModelFallback:
         
         raise Exception(f"All models failed. Errors: {'; '.join(errors)}")
     
-    def _call_model(self, model_name, prompt, max_tokens):
+    def _call_model(self, model_name, prompt, max_tokens, api_key=None):
         if model_name == 'gemini':
-            return self._call_gemini(prompt)
+            return self._call_gemini(prompt, api_key=api_key)
         elif model_name == 'groq':
-            return self._call_groq(prompt, max_tokens)
+            return self._call_groq(prompt, max_tokens, api_key=api_key)
     
-    def _call_gemini(self, prompt):
-        api_key = os.getenv('GEMINI_API_KEY')
-        if not api_key:
+    def _call_gemini(self, prompt, api_key=None):
+        key = api_key or os.getenv('GEMINI_API_KEY')
+        if not key:
             raise ValueError("GEMINI_API_KEY not found")
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=key)
         response = client.models.generate_content(
             model='gemini-2.0-flash',
             contents=prompt
         )
         return response.text.strip()
 
-    def _call_groq(self, prompt, max_tokens):
-        api_key = os.getenv('GROQ_API_KEY')
-        if not api_key:
+    def _call_groq(self, prompt, max_tokens, api_key=None):
+        key = api_key or os.getenv('GROQ_API_KEY')
+        if not key:
             raise ValueError("GROQ_API_KEY not found")
         response = requests.post(
             'https://api.groq.com/openai/v1/chat/completions',
-            headers={'Authorization': f'Bearer {api_key}'},
+            headers={'Authorization': f'Bearer {key}'},
             json={
                 'model': 'llama-3.3-70b-versatile',
                 'messages': self._split_prompt(prompt),
@@ -132,9 +132,9 @@ def get_client():
     return genai.Client(api_key=api_key)
 
 @DeepCopyLRUCache(capacity=500)
-def generate_with_fallback(prompt, max_tokens=2000, preferred_model=None):
+def generate_with_fallback(prompt, max_tokens=2000, preferred_model=None, api_key=None):
     """Generate text with automatic model fallback."""
-    return _fallback.generate(prompt, max_tokens, preferred_model=preferred_model)
+    return _fallback.generate(prompt, max_tokens, preferred_model=preferred_model, api_key=api_key)
 
 
 # ============================================================================
@@ -429,11 +429,11 @@ def analyze_quality_heatmap(prompt):
 # ============================================================================
 
 @DeepCopyLRUCache(capacity=500)
-def generate_ab_variations(prompt):
+def generate_ab_variations(prompt, api_key=None):
     """Generate 3 variations with fallback concurrently to prevent Vercel Application Timeouts"""
     
-    def fetch_variation(style_prompt, max_tokens, preferred_model=None):
-        result = generate_with_fallback(style_prompt, max_tokens, preferred_model=preferred_model)
+    def fetch_variation(style_prompt, max_tokens, preferred_model=None, api_key=None):
+        result = generate_with_fallback(style_prompt, max_tokens, preferred_model=preferred_model, api_key=api_key)
         return {'text': result['text'], 'length': len(result['text']), 'model': result['model']}
 
     try:
@@ -461,9 +461,9 @@ Structure the final output as a comprehensive, highly-organized technical docume
 Ensure the final output is exceptionally professional and visually structured using Markdown headers and bullet points. Here is the original prompt to enhance:\n{prompt}"""
 
         # Fetch variations routing to different models to avoid free-tier API rate limits (HTTP 429)
-        concise = fetch_variation(c_prompt, 800, preferred_model='gemini')
-        detailed = fetch_variation(d_prompt, 2048, preferred_model='nvidia_mistral')
-        structured = fetch_variation(s_prompt, 2048, preferred_model='nvidia_qwen')
+        concise = fetch_variation(c_prompt, 800, preferred_model='gemini', api_key=api_key)
+        detailed = fetch_variation(d_prompt, 2048, preferred_model='groq', api_key=api_key)
+        structured = fetch_variation(s_prompt, 2048, preferred_model='groq', api_key=api_key)
         
         return {
             'concise': concise,
