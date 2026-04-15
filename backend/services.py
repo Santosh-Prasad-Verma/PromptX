@@ -48,6 +48,7 @@ class AIModelFallback:
             {'name': 'mistral','priority': 4},
             {'name': 'llama_405b','priority': 5},
             {'name': 'glm','priority': 6},
+            {'name': 'deepseek','priority': 7},
         ]
     
     def generate(self, prompt, max_tokens=2000, preferred_model=None, api_key=None):
@@ -84,6 +85,8 @@ class AIModelFallback:
             return self._call_llama_405b(prompt, max_tokens, api_key=api_key)
         elif model_name == 'glm':
             return self._call_glm(prompt, max_tokens, api_key=api_key)
+        elif model_name == 'deepseek':
+            return self._call_deepseek(prompt, max_tokens, api_key=api_key)
     
     def _call_gemini(self, prompt, api_key=None):
         key = api_key or os.getenv('GEMINI_API_KEY')
@@ -199,6 +202,33 @@ class AIModelFallback:
             top_p=1.0,
             max_tokens=min(max_tokens, 16384),
             extra_body={"chat_template_kwargs":{"enable_thinking":True,"clear_thinking":False}},
+            stream=False
+        )
+        msg = completion.choices[0].message
+        content = msg.content or ""
+        reasoning = getattr(msg, "reasoning_content", None)
+        if reasoning:
+            return f"> [!TIP]\n> **Thinking Process:**\n> {reasoning}\n\n{content}".strip()
+        return content.strip()
+
+    def _call_deepseek(self, prompt, max_tokens, api_key=None):
+        key = api_key or os.getenv('DEEP_SEEK_API_KEY')
+        if not key:
+            raise ValueError("DEEP_SEEK_API_KEY not found")
+        
+        from openai import OpenAI
+        client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=key
+        )
+
+        completion = client.chat.completions.create(
+            model="deepseek-ai/deepseek-v3.2",
+            messages=self._split_prompt(prompt),
+            temperature=1.0,
+            top_p=0.95,
+            max_tokens=min(max_tokens, 8192),
+            extra_body={"chat_template_kwargs": {"thinking":True}},
             stream=False
         )
         msg = completion.choices[0].message

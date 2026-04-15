@@ -101,7 +101,8 @@ function setupModelSelector() {
     nvidia: 'NVIDIA',
     mistral: 'Mistral',
     llama_405b: 'Llama 405B',
-    glm: 'GLM 4.7'
+    glm: 'GLM 4.7',
+    deepseek: 'DeepSeek'
   };
   
   modelBtns.forEach(btn => {
