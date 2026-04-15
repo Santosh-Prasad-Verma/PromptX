@@ -148,7 +148,7 @@ class AIModelFallback:
             messages=self._split_prompt(prompt),
             temperature=0.7,
             top_p=0.9,
-            max_tokens=min(max_tokens, 8192),
+            max_tokens=min(max_tokens, 4096),
             stream=False
         )
         return completion.choices[0].message.content.strip()
@@ -172,7 +172,7 @@ class AIModelFallback:
                 "top_p": 1.0,
                 "stream": False
             },
-            timeout=60
+            timeout=30
         )
         response.raise_for_status()
         return response.json()['choices'][0]['message']['content'].strip()
@@ -214,7 +214,7 @@ class AIModelFallback:
             messages=self._split_prompt(prompt),
             temperature=1.0,
             top_p=1.0,
-            max_tokens=min(max_tokens, 16384),
+            max_tokens=min(max_tokens, 4096),
             extra_body={"chat_template_kwargs":{"enable_thinking":True,"clear_thinking":False}},
             stream=False
         )
@@ -241,7 +241,7 @@ class AIModelFallback:
             messages=self._split_prompt(prompt),
             temperature=1.0,
             top_p=0.95,
-            max_tokens=min(max_tokens, 8192),
+            max_tokens=min(max_tokens, 4096),
             extra_body={"chat_template_kwargs": {"thinking":True}},
             stream=False
         )
@@ -272,7 +272,7 @@ class AIModelFallback:
                 "stream": False,
                 "chat_template_kwargs": {"thinking": True}
             },
-            timeout=80
+            timeout=40
         )
         response.raise_for_status()
         msg = response.json()['choices'][0]['message']
@@ -298,7 +298,7 @@ class AIModelFallback:
             messages=self._split_prompt(prompt),
             temperature=1.0,
             top_p=0.9,
-            max_tokens=min(max_tokens, 16384),
+            max_tokens=min(max_tokens, 4000),
             stream=False
         )
         msg = completion.choices[0].message
@@ -668,9 +668,10 @@ def generate_ab_variations(prompt, preferred_model=None, api_key=None):
         return {'text': result['text'], 'length': len(result['text']), 'model': result['model']}
 
     try:
+        from concurrent.futures import ThreadPoolExecutor
+        
         # Prepare prompts
         c_prompt = f"Make this prompt concise and direct (max 150 words) focusing only on core deliverables:\n{prompt}"
-        
         d_prompt = f"""Expand this prompt into a comprehensive, highly-detailed technical specification.
 You MUST include:
 1. Deep technical requirements and functional constraints.
@@ -678,31 +679,30 @@ You MUST include:
 3. How different components and integrations will work together.
 4. Edge cases, performance considerations, and scalability.
 Make it as detailed and exhaustive as possible:\n{prompt}"""
-
         s_prompt = f"""Rewrite this prompt using the advanced CREATE Prompt Engineering Algorithm.
 Structure the final output as a comprehensive, highly-organized technical document. It MUST include:
-
 1. **Context & Role**: Set the precise persona and background information.
 2. **Request**: The core task defined with unambiguous clarity.
 3. **Explanation (Diagram)**: Provide a visual architecture or logic flow using a Mermaid.js diagram (e.g. ```mermaid ...```). This is mandatory to elaborate and explain complex structures.
 4. **Action Steps**: Step-by-step breakdown of how the task should be executed.
 5. **Tone & Constraints**: Explicit boundaries, technologies, and styling rules.
 6. **Extras/Examples**: Include edge cases or output format specifications.
-
 Ensure the final output is exceptionally professional and visually structured using Markdown headers and bullet points. Here is the original prompt to enhance:\n{prompt}"""
 
-        # Fetch variations using the user's preferred model if provided
-        # This honors the user's explicit selection in the Sidebar.
         p_model = preferred_model
-        
-        # If no preferred model, we use a balanced mix
         v1_model = p_model or 'gemini'
         v2_model = p_model or 'mistral'
         v3_model = p_model or 'llama_405b'
 
-        concise = fetch_variation(c_prompt, 800, preferred_model=v1_model, api_key=api_key)
-        detailed = fetch_variation(d_prompt, 2048, preferred_model=v2_model, api_key=api_key)
-        structured = fetch_variation(s_prompt, 2048, preferred_model=v3_model, api_key=api_key)
+        # Execute all 3 variations CONCURRENTLY
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            future_c = executor.submit(fetch_variation, c_prompt, 800, v1_model, api_key)
+            future_d = executor.submit(fetch_variation, d_prompt, 2048, v2_model, api_key)
+            future_s = executor.submit(fetch_variation, s_prompt, 2048, v3_model, api_key)
+            
+            concise = future_c.result()
+            detailed = future_d.result()
+            structured = future_s.result()
         
         return {
             'concise': concise,
