@@ -17,11 +17,8 @@ numpy
 scikit-learn
 python-dotenv
 gunicorn
-<<<<<<< Updated upstream:requirements.txt
 social-auth-app-django
 razorpay
 resend
-=======
 psycopg2-binary
 whitenoise
->>>>>>> Stashed changes:backend/requirements.txt
