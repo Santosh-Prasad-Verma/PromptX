@@ -55,16 +55,21 @@ class AIModelFallback:
         ]
     
     def generate(self, prompt, max_tokens=2000, preferred_model=None, api_key=None):
-        """Try models in order until one succeeds."""
+        """Try models in order until one succeeds. If preferred_model is strict, don't fallback."""
         errors = []
         
-        if preferred_model:
-            model_order = [m for m in self.models if m['name'] == preferred_model]
-            model_order += [m for m in self.models if m['name'] != preferred_model]
-        else:
-            model_order = self.models
+        # If user explicitly chose a model, we ONLY try that model (NO FALLBACK)
+        # to ensure the user gets what they explicitly selected.
+        if preferred_model and preferred_model in [m['name'] for m in self.models]:
+            try:
+                result = self._call_model(preferred_model, prompt, max_tokens, api_key=api_key)
+                if result:
+                    return {'text': result, 'model': preferred_model, 'success': True}
+            except Exception as e:
+                raise Exception(f"Selected model '{preferred_model}' failed: {str(e)}")
         
-        for model in model_order:
+        # Otherwise, follow fallback order
+        for model in self.models:
             try:
                 result = self._call_model(model['name'], prompt, max_tokens, api_key=api_key)
                 if result:
@@ -655,7 +660,7 @@ def analyze_quality_heatmap(prompt):
 # ============================================================================
 
 @DeepCopyLRUCache(capacity=500)
-def generate_ab_variations(prompt, api_key=None):
+def generate_ab_variations(prompt, preferred_model=None, api_key=None):
     """Generate 3 variations with fallback concurrently to prevent Vercel Application Timeouts"""
     
     def fetch_variation(style_prompt, max_tokens, preferred_model=None, api_key=None):
@@ -686,10 +691,18 @@ Structure the final output as a comprehensive, highly-organized technical docume
 
 Ensure the final output is exceptionally professional and visually structured using Markdown headers and bullet points. Here is the original prompt to enhance:\n{prompt}"""
 
-        # Fetch variations routing to different models to avoid free-tier API rate limits (HTTP 429)
-        concise = fetch_variation(c_prompt, 800, preferred_model='gemini', api_key=api_key)
-        detailed = fetch_variation(d_prompt, 2048, preferred_model='mistral', api_key=api_key)
-        structured = fetch_variation(s_prompt, 2048, preferred_model='llama_405b', api_key=api_key)
+        # Fetch variations using the user's preferred model if provided
+        # This honors the user's explicit selection in the Sidebar.
+        p_model = preferred_model
+        
+        # If no preferred model, we use a balanced mix
+        v1_model = p_model or 'gemini'
+        v2_model = p_model or 'mistral'
+        v3_model = p_model or 'llama_405b'
+
+        concise = fetch_variation(c_prompt, 800, preferred_model=v1_model, api_key=api_key)
+        detailed = fetch_variation(d_prompt, 2048, preferred_model=v2_model, api_key=api_key)
+        structured = fetch_variation(s_prompt, 2048, preferred_model=v3_model, api_key=api_key)
         
         return {
             'concise': concise,

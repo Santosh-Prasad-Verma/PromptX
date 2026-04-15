@@ -912,6 +912,18 @@ function escapeHtml(text) {
 
 function renderMarkdown(text) {
   if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    // Custom handling for [!TIP] thinking block
+    if (text.includes('> [!TIP]') && text.includes('Thinking Process:')) {
+      text = text.replace(/> \[!TIP\]\n> \*\*Thinking Process:\*\*\n> ([\s\S]*?)\n\n/g, (match, p1) => {
+        return `<div class="ai-thinking-box">
+          <div class="thinking-box-header">
+            <span class="thinking-pulse"></span>
+            <strong>Thinking Process</strong>
+          </div>
+          <div class="thinking-box-body">${p1.replace(/^> /gm, '').trim()}</div>
+        </div>\n\n`;
+      });
+    }
     return DOMPurify.sanitize(marked.parse(text));
   }
   return escapeHtml(text);

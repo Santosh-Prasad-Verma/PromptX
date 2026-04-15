@@ -334,6 +334,54 @@ body {
   box-shadow: 0 0 8px rgba(14, 165, 233, 0.8);
 }
 
+/* AI Thinking Box Styles */
+.ai-thinking-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  margin: 1rem 0;
+  overflow: hidden;
+  font-size: 0.85rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.thinking-box-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+.thinking-pulse {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulse 1.5s infinite;
+}
+
+.thinking-box-body {
+  padding: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .kimi-dot {
   background: #14b8a6;
   box-shadow: 0 0 8px rgba(20, 184, 166, 0.8);

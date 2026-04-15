@@ -601,7 +601,11 @@ def ab_test_view(request):
             return JsonResponse({'error': 'Prompt is empty or invalid'}, status=400)
         
         api_key = request.headers.get('X-API-Key')
-        variations = generate_ab_variations(prompt, api_key=api_key)
+        
+        preferred_model = data.get('model')
+        model_arg = preferred_model if preferred_model in ('gemini', 'groq', 'nvidia', 'mistral', 'llama_405b', 'glm', 'deepseek', 'kimi', 'kimi_think', 'gpt_oss') else None
+
+        variations = generate_ab_variations(prompt, preferred_model=model_arg, api_key=api_key)
         
         # Optionally include comparison
         if data.get('include_comparison', True):
