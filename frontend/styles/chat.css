@@ -309,6 +309,11 @@ body {
   box-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
 }
 
+.nvidia-dot {
+  background: #00e5ff;
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+}
+
 /* ===== MAIN CHAT AREA ===== */
 .chat-main {
   flex: 1;

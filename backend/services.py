@@ -44,6 +44,7 @@ class AIModelFallback:
         self.models = [
             {'name': 'gemini', 'priority': 1},
             {'name': 'groq',   'priority': 2},
+            {'name': 'nvidia', 'priority': 3},
         ]
     
     def generate(self, prompt, max_tokens=2000, preferred_model=None, api_key=None):
@@ -72,6 +73,8 @@ class AIModelFallback:
             return self._call_gemini(prompt, api_key=api_key)
         elif model_name == 'groq':
             return self._call_groq(prompt, max_tokens, api_key=api_key)
+        elif model_name == 'nvidia':
+            return self._call_nvidia(prompt, max_tokens, api_key=api_key)
     
     def _call_gemini(self, prompt, api_key=None):
         key = api_key or os.getenv('GEMINI_API_KEY')
@@ -102,6 +105,27 @@ class AIModelFallback:
         response.raise_for_status()
         msg = response.json().get('choices', [{}])[0].get('message', {})
         return str(msg.get('content', '')).strip()
+
+    def _call_nvidia(self, prompt, max_tokens, api_key=None):
+        key = api_key or os.getenv('NVIDIA_API_KEY')
+        if not key:
+            raise ValueError("NVIDIA_API_KEY not found")
+        
+        from openai import OpenAI
+        client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=key
+        )
+
+        completion = client.chat.completions.create(
+            model="minimaxai/minimax-m2.7",
+            messages=self._split_prompt(prompt),
+            temperature=0.7,
+            top_p=0.9,
+            max_tokens=min(max_tokens, 8192),
+            stream=False
+        )
+        return completion.choices[0].message.content.strip()
 
     def _split_prompt(self, prompt):
         """Separate system and user parts if combined."""

@@ -97,7 +97,8 @@ function setupModelSelector() {
 
   const modelLabels = {
     gemini: 'Gemini 2.0',
-    groq: 'Groq'
+    groq: 'Groq',
+    nvidia: 'NVIDIA'
   };
   
   modelBtns.forEach(btn => {
