@@ -1,57 +1,22 @@
-#!/usr/bin/env python3
-"""
-Test script for multi-model fallback system
-"""
-
 import os
+import resend
 from dotenv import load_dotenv
-from services import generate_with_fallback
 
-load_dotenv()
+dotenv_path = r"c:\Users\bhalo\PromptX\backend\.env"
+load_dotenv(dotenv_path=dotenv_path)
 
-def test_fallback():
-    print("🧪 Testing Multi-Model Fallback System\n")
-    print("=" * 60)
-    
-    # Check which API keys are available
-    print("\n📋 Available API Keys:")
-    keys = {
-        'Gemini': os.getenv('GEMINI_API_KEY'),
-        'NVIDIA Mistral': os.getenv('NVIDIA_MISTRAL_API_KEY'),
-        'NVIDIA Qwen': os.getenv('NVIDIA_QWEN_API_KEY'),
-        'HuggingFace': os.getenv('HUGGINGFACE_API_KEY')
-    }
-    
-    for name, key in keys.items():
-        status = "✅ Configured" if key else "❌ Missing"
-        print(f"  {name}: {status}")
-    
-    # Test prompt
-    test_prompt = "Write a short greeting message for a website."
-    
-    print(f"\n🎯 Test Prompt: '{test_prompt}'")
-    print("\n⏳ Generating response with fallback...\n")
-    
-    try:
-        result = generate_with_fallback(test_prompt, max_tokens=100)
-        
-        print("=" * 60)
-        print(f"\n✅ SUCCESS!")
-        print(f"\n🤖 Model Used: {result['model'].upper()}")
-        print(f"\n📝 Response:\n{result['text']}")
-        print("\n" + "=" * 60)
-        
-        return True
-        
-    except Exception as e:
-        print("=" * 60)
-        print(f"\n❌ FAILED!")
-        print(f"\n⚠️  Error: {str(e)}")
-        print("\n💡 Tip: Make sure at least one API key is configured in .env")
-        print("\n" + "=" * 60)
-        
-        return False
+resend.api_key = os.getenv("RESEND_API_KEY")
+test_email = "bhalo@gmail.com" # I'll use a placeholder or ask the user
 
-if __name__ == "__main__":
-    success = test_fallback()
-    exit(0 if success else 1)
+print(f"Testing Resend with key: {resend.api_key[:10]}...")
+
+try:
+    response = resend.Emails.send({
+        "from": "auth@janhelps.in",
+        "to": "kartikresumes@gmail.com", # Change this to the user's actual email if possible
+        "subject": "Resend Test",
+        "html": "<strong>Testing Resend and API Key.</strong>"
+    })
+    print("Success! Response:", response)
+except Exception as e:
+    print("FAILED! Error details:", str(e))

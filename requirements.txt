@@ -5,3 +5,6 @@ python-dotenv
 google-genai
 requests
 gunicorn
+social-auth-app-django
+razorpay
+resend

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Module — PromptX</title>
+    <meta name="theme-color" content="#00ff41">
+    <link rel="icon" type="image/svg+xml" href="/Public/star.svg">
+    <link rel="stylesheet" href="/index.css">
+    <style>
+        body {
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Adjusting layout for navbar presence */
+        .choose-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 20px 60px;
+            min-height: calc(100vh - 180px);
+        }
+
+        .choose-wrapper {
+            position: relative;
+            z-index: 100;
+            width: 100%;
+            max-width: 1000px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .dashboard-header h1 {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            letter-spacing: 0.15em;
+            color: var(--primary);
+            margin: 0;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .dashboard-header p {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-top: 1rem;
+            letter-spacing: 0.12em;
+            font-size: 0.85rem;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .module-card {
+            background: rgba(10, 15, 12, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2.5rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .module-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .module-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.12);
+        }
+
+        .module-card:hover::before {
+            opacity: 1;
+        }
+
+        .module-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--primary);
+            padding: 4px 10px;
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            transition: 0.3s;
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .module-card:hover .module-icon {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+        }
+
+        .module-content h2 {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: #fff;
+            margin: 0 0 1rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .module-content p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            min-height: 4.5rem;
+        }
+
+        .feature-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-bullets li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            font-family: var(--font-mono);
+        }
+
+        .feature-bullets li svg {
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .module-action {
+            margin-top: auto;
+            padding-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--primary);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .module-action span {
+            transition: transform 0.3s;
+        }
+
+        .module-card:hover .module-action span {
+            transform: translateX(8px);
+        }
+
+        /* Status UI */
+        .system-status {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0.6;
+            z-index: 1000;
+        }
+
+        @media (max-width: 850px) {
+            .options-container { grid-template-columns: 1fr; }
+            .choose-main { padding-top: 100px; }
+            .dashboard-header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Identical Background to Landing Page -->
+    <div class="cyber-bg"></div>
+    <div class="scanlines"></div>
+    <div class="particles"><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div></div>
+
+    <!-- Identical Navbar to Landing Page -->
+    <nav class="navbar" id="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/Public/bot-img.png" alt="PromptX">
+            <span class="nav-brand-text">PROMPTX</span>
+        </a>
+        
+        <ul class="nav-links">
+            <li><a href="/chat.html">Playground</a></li>
+            <li><a href="/index.html#features">Features</a></li>
+            <li><a href="/index.html#pricing">Pricing</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+            <a href="/logout/" class="nav-github" style="border-color: rgba(255,85,85,0.3); color: #ff5555;">
+                <span>Logout</span>
+            </a>
+            <div class="status-pill" style="margin-left: 1rem; background: rgba(0,255,65,0.1); padding: 0.5rem 1rem; border-radius: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--primary); border: 1px solid rgba(0,255,65,0.2);">
+                ONLINE: {{ user.username }}
+            </div>
+        </div>
+    </nav>
+
+    <main class="choose-main">
+        <div class="choose-wrapper">
+            <div class="dashboard-header">
+                <h1>CONNECT_INTERFACE</h1>
+                <p>> SELECT PROTOCOL TO INITIALIZE SESSION</p>
+            </div>
+
+            <div class="options-container">
+                <!-- Option 1: AI Playground -->
+                <div class="module-card" onclick="window.location.href='/chat.html'">
+                    <div class="module-badge">STABLE_V2.0</div>
+                    <div class="module-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                    <div class="module-content">
+                        <h2>NEURAL_ENGINE</h2>
+                        <p>Direct interface with Gemini and fallback architectures. Enhance prompts and analyze heatmap quality.</p>
+                        <ul class="feature-bullets">
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Prompt Optimization</li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Heatmap Analysis</li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Multi-Model Fallback</li>
+                        </ul>
+                    </div>
+                    <div class="module-action">
+                        INITIALIZE_SESSION <span>&gt;&gt;</span>
+                    </div>
+                </div>
+
+                <!-- Option 2: Full Stack Creator -->
+                <div class="module-card" onclick="window.location.href='/pricing.html'">
+                    <div class="module-badge" style="color: #f1fa8c; border-color: rgba(241, 250, 140, 0.3);">PREMIUM_ONLY</div>
+                    <div class="module-icon" style="color: #f1fa8c; filter: drop-shadow(0 0 8px rgba(241, 250, 140, 0.4));">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </div>
+                    <div class="module-content">
+                        <h2>APP_SYNTHESIZER</h2>
+                        <p>Convert prompt logic into fully functional web applications. React + Django architecture generation.</p>
+                        <ul class="feature-bullets">
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Codebase Generation</li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Database Scaffolding</li>
+                            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Deployment Ready</li>
+                        </ul>
+                    </div>
+                    <div class="module-action" style="color: #f1fa8c;">
+                        UPGRADE_IDENTITY <span>&gt;&gt;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="system-status">
+        [SYS]: KERNEL_OK // [NETWORK]: ENCRYPTED // [HOST]: 127.0.0.1
+    </div>
+</body>
+</html>
