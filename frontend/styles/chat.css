@@ -314,6 +314,11 @@ body {
   box-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
 }
 
+.mistral-dot {
+  background: #a855f7;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.6);
+}
+
 /* ===== MAIN CHAT AREA ===== */
 .chat-main {
   flex: 1;

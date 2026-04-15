@@ -45,6 +45,7 @@ class AIModelFallback:
             {'name': 'gemini', 'priority': 1},
             {'name': 'groq',   'priority': 2},
             {'name': 'nvidia', 'priority': 3},
+            {'name': 'mistral','priority': 4},
         ]
     
     def generate(self, prompt, max_tokens=2000, preferred_model=None, api_key=None):
@@ -75,6 +76,8 @@ class AIModelFallback:
             return self._call_groq(prompt, max_tokens, api_key=api_key)
         elif model_name == 'nvidia':
             return self._call_nvidia(prompt, max_tokens, api_key=api_key)
+        elif model_name == 'mistral':
+            return self._call_mistral(prompt, max_tokens, api_key=api_key)
     
     def _call_gemini(self, prompt, api_key=None):
         key = api_key or os.getenv('GEMINI_API_KEY')
@@ -126,6 +129,30 @@ class AIModelFallback:
             stream=False
         )
         return completion.choices[0].message.content.strip()
+
+    def _call_mistral(self, prompt, max_tokens, api_key=None):
+        key = api_key or os.getenv('MISTRAL_API_KEY')
+        if not key:
+            raise ValueError("MISTRAL_API_KEY not found")
+        
+        response = requests.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Accept": "application/json"
+            },
+            json={
+                "model": "mistralai/mistral-large-3-675b-instruct-2512",
+                "messages": self._split_prompt(prompt),
+                "max_tokens": min(max_tokens, 4096),
+                "temperature": 0.15,
+                "top_p": 1.0,
+                "stream": False
+            },
+            timeout=60
+        )
+        response.raise_for_status()
+        return response.json()['choices'][0]['message']['content'].strip()
 
     def _split_prompt(self, prompt):
         """Separate system and user parts if combined."""
@@ -486,8 +513,8 @@ Ensure the final output is exceptionally professional and visually structured us
 
         # Fetch variations routing to different models to avoid free-tier API rate limits (HTTP 429)
         concise = fetch_variation(c_prompt, 800, preferred_model='gemini', api_key=api_key)
-        detailed = fetch_variation(d_prompt, 2048, preferred_model='groq', api_key=api_key)
-        structured = fetch_variation(s_prompt, 2048, preferred_model='groq', api_key=api_key)
+        detailed = fetch_variation(d_prompt, 2048, preferred_model='mistral', api_key=api_key)
+        structured = fetch_variation(s_prompt, 2048, preferred_model='mistral', api_key=api_key)
         
         return {
             'concise': concise,
