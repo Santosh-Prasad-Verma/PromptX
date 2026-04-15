@@ -103,7 +103,8 @@ function setupModelSelector() {
     llama_405b: 'Llama 405B',
     glm: 'GLM 4.7',
     deepseek: 'DeepSeek',
-    kimi: 'Kimi'
+    kimi: 'Kimi',
+    kimi_think: 'Kimi'
   };
   
   modelBtns.forEach(btn => {
